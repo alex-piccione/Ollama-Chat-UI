@@ -12,15 +12,17 @@ A desktop chat interface for [Ollama](https://ollama.com/) with streaming respon
 
 ```bash
 # Clone or download the project, then:
-cd "Ollama Chat UI"
+cd "Ollama-Chat-UI"
 
 # Create a virtual environment
 python -m venv .venv
 
 # Activate it
-# Windows:
+# Windows (CMD):
 .venv\Scripts\activate
-# macOS/Linux:
+# /Windows (bash):
+source .venv/Scripts/activate
+# macOS/Linux/Windows (bash):
 source .venv/bin/activate
 
 # Install the app (and optionally dev tools)

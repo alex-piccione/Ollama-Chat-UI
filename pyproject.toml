@@ -24,8 +24,8 @@ dev = [
 [project.scripts]
 ollama-chat = "main:main"
 
-[tool.setuptools.packages.find]
-where = ["."]
+[tool.setuptools]
+py-modules = ["main", "chat_window", "chat_widget", "ollama_client", "config"]
 
 [tool.ruff]
 line-length = 100

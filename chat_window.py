@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QColor, QFont, QKeyEvent, QPalette
+from PyQt6.QtGui import QColor, QFont, QKeyEvent, QPalette, QIcon
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -59,15 +59,15 @@ class _SendBox(QPlainTextEdit):
         self.setFont(QFont("Segoe UI", 11))
         self.setStyleSheet("""
             QPlainTextEdit {
-                background: #2e2f4a;
-                color: #d4d4e8;
-                border: 1px solid #3a3b55;
+                background: #2A2A2A;
+                color: #F2F2F2;
+                border: 1px solid #333333;
                 border-radius: 12px;
                 padding: 10px 14px;
-                selection-background-color: #7c6af7;
+                selection-background-color: #FF8C00;
             }
             QPlainTextEdit:focus {
-                border: 1px solid #7c6af7;
+                border: 1px solid #FF8C00;
             }
         """)
 
@@ -102,6 +102,7 @@ class ChatWindow(QMainWindow):
 
     def _build_ui(self) -> None:
         self.setWindowTitle("Ollama Chat")
+        self.setWindowIcon(QIcon(str(Path(__file__).parent / "icon.png")))
         self.setMinimumSize(800, 600)
         self._apply_dark_palette()
 
@@ -111,8 +112,8 @@ class ChatWindow(QMainWindow):
         toolbar.setIconSize(QSize(18, 18))
         toolbar.setStyleSheet("""
             QToolBar {
-                background: #1e1f30;
-                border-bottom: 1px solid #3a3b55;
+                background: #181818;
+                border-bottom: 1px solid #333333;
                 padding: 6px 12px;
                 spacing: 8px;
             }
@@ -121,7 +122,7 @@ class ChatWindow(QMainWindow):
 
         # Logo label
         logo = QLabel("🦙  <b>Ollama Chat</b>")
-        logo.setStyleSheet("color: #d4d4e8; font-size: 15px; padding-right: 16px;")
+        logo.setStyleSheet("color: #F2F2F2; font-size: 15px; padding-right: 16px;")
         toolbar.addWidget(logo)
 
         # Spacer
@@ -131,28 +132,28 @@ class ChatWindow(QMainWindow):
 
         # Model selector
         model_label = QLabel("Model:")
-        model_label.setStyleSheet("color: #888aaa; font-size: 13px;")
+        model_label.setStyleSheet("color: #AAAAAA; font-size: 13px;")
         toolbar.addWidget(model_label)
 
         self._model_combo = QComboBox()
         self._model_combo.setMinimumWidth(220)
         self._model_combo.setStyleSheet("""
             QComboBox {
-                background: #2e2f4a;
-                color: #d4d4e8;
-                border: 1px solid #3a3b55;
+                background: #2A2A2A;
+                color: #F2F2F2;
+                border: 1px solid #333333;
                 border-radius: 8px;
                 padding: 5px 12px;
                 font-size: 13px;
             }
-            QComboBox:hover  { border-color: #7c6af7; }
+            QComboBox:hover  { border-color: #FF8C00; }
             QComboBox::drop-down { border: none; width: 24px; }
             QComboBox::down-arrow { image: none; }
             QComboBox QAbstractItemView {
-                background: #2e2f4a;
-                color: #d4d4e8;
-                selection-background-color: #7c6af7;
-                border: 1px solid #3a3b55;
+                background: #2A2A2A;
+                color: #F2F2F2;
+                selection-background-color: #FF8C00;
+                border: 1px solid #333333;
                 border-radius: 8px;
             }
         """)
@@ -162,7 +163,7 @@ class ChatWindow(QMainWindow):
         self._btn_new = QPushButton("✦  New Chat")
         self._btn_new.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_new.clicked.connect(self._new_chat)
-        self._btn_new.setStyleSheet(self._btn_style("#3a3b55", "#7c6af7"))
+        self._btn_new.setStyleSheet(self._btn_style("#333333", "#FF8C00"))
         toolbar.addWidget(self._btn_new)
 
         # Stop button
@@ -170,20 +171,13 @@ class ChatWindow(QMainWindow):
         self._btn_stop.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_stop.clicked.connect(self._stop_generation)
         self._btn_stop.setEnabled(False)
-        self._btn_stop.setStyleSheet(self._btn_style("#3a3b55", "#c0392b"))
+        self._btn_stop.setStyleSheet(self._btn_style("#333333", "#c0392b"))
         toolbar.addWidget(self._btn_stop)
-
-        # Plain text toggle
-        self._btn_plain_text = QPushButton("Markdown View")
-        self._btn_plain_text.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._btn_plain_text.clicked.connect(self._toggle_plain_text)
-        self._btn_plain_text.setStyleSheet(self._btn_style("#3a3b55", "#4a4c68"))
-        toolbar.addWidget(self._btn_plain_text)
 
         # ── Central widget ───────────────────────────────────────────────────
         central = QWidget()
         self.setCentralWidget(central)
-        central.setStyleSheet("background: #1a1b26;")
+        central.setStyleSheet("background: #121212;")
 
         v_layout = QVBoxLayout(central)
         v_layout.setContentsMargins(0, 0, 0, 0)
@@ -196,12 +190,12 @@ class ChatWindow(QMainWindow):
         # Separator
         sep = QFrame()
         sep.setFrameShape(QFrame.Shape.HLine)
-        sep.setStyleSheet("background: #3a3b55; max-height: 1px;")
+        sep.setStyleSheet("background: #333333; max-height: 1px;")
         v_layout.addWidget(sep)
 
         # ── Input area ───────────────────────────────────────────────────────
         input_frame = QWidget()
-        input_frame.setStyleSheet("background: #1e1f30;")
+        input_frame.setStyleSheet("background: #181818;")
         input_frame.setContentsMargins(0, 0, 0, 0)
         h_input = QHBoxLayout(input_frame)
         h_input.setContentsMargins(16, 12, 16, 14)
@@ -217,17 +211,17 @@ class ChatWindow(QMainWindow):
         self._btn_send.setStyleSheet("""
             QPushButton {
                 background: qlineargradient(x1:0,y1:0,x2:1,y2:1,
-                    stop:0 #7c6af7, stop:1 #a78bfa);
-                color: white;
+                    stop:0 #FF8C00, stop:1 #FFB732);
+                color: black;
                 border: none;
                 border-radius: 12px;
                 font-size: 14px;
                 font-weight: 600;
                 padding: 8px 0;
             }
-            QPushButton:hover   { background: #8f7ef9; }
-            QPushButton:pressed { background: #6a58e0; }
-            QPushButton:disabled{ background: #3a3b55; color: #666880; }
+            QPushButton:hover   { background: #FF9900; }
+            QPushButton:pressed { background: #E67E22; }
+            QPushButton:disabled{ background: #333333; color: #777777; }
         """)
         h_input.addWidget(self._btn_send, alignment=Qt.AlignmentFlag.AlignBottom)
 
@@ -237,10 +231,10 @@ class ChatWindow(QMainWindow):
         self._status = QStatusBar()
         self._status.setStyleSheet("""
             QStatusBar {
-                background: #1e1f30;
-                color: #666880;
+                background: #181818;
+                color: #777777;
                 font-size: 12px;
-                border-top: 1px solid #3a3b55;
+                border-top: 1px solid #333333;
             }
         """)
         self.setStatusBar(self._status)
@@ -335,12 +329,6 @@ class ChatWindow(QMainWindow):
         self._btn_stop.setEnabled(streaming)
         self._input.setEnabled(not streaming)
 
-    def _toggle_plain_text(self) -> None:
-        self._chat.set_plain_text_mode(not self._chat._plain_text_mode)
-        is_plain = self._chat._plain_text_mode
-        self._btn_plain_text.setText("Plain Text View" if is_plain else "Markdown View")
-        self._chat.render_history(self._history)
-
     # ── Logging ──────────────────────────────────────────────────────────────
 
     def _init_log_file(self) -> None:
@@ -400,30 +388,30 @@ class ChatWindow(QMainWindow):
         return f"""
             QPushButton {{
                 background: {bg};
-                color: #d4d4e8;
-                border: 1px solid #3a3b55;
+                color: #F2F2F2;
+                border: 1px solid #333333;
                 border-radius: 8px;
                 padding: 6px 14px;
                 font-size: 13px;
             }}
             QPushButton:hover   {{ background: {hover}; color: white; border-color: {hover}; }}
             QPushButton:pressed {{ opacity: 0.85; }}
-            QPushButton:disabled{{ color: #666880; }}
+            QPushButton:disabled{{ color: #777777; }}
         """
 
     @staticmethod
     def _apply_dark_palette() -> None:
         pal = QPalette()
-        dark = QColor("#1a1b26")
+        dark = QColor("#121212")
         pal.setColor(QPalette.ColorRole.Window, dark)
-        pal.setColor(QPalette.ColorRole.WindowText, QColor("#d4d4e8"))
-        pal.setColor(QPalette.ColorRole.Base, QColor("#2e2f4a"))
-        pal.setColor(QPalette.ColorRole.AlternateBase, QColor("#24253a"))
+        pal.setColor(QPalette.ColorRole.WindowText, QColor("#F2F2F2"))
+        pal.setColor(QPalette.ColorRole.Base, QColor("#2A2A2A"))
+        pal.setColor(QPalette.ColorRole.AlternateBase, QColor("#1F1F1F"))
         pal.setColor(QPalette.ColorRole.ToolTipBase, dark)
-        pal.setColor(QPalette.ColorRole.ToolTipText, QColor("#d4d4e8"))
-        pal.setColor(QPalette.ColorRole.Text, QColor("#d4d4e8"))
-        pal.setColor(QPalette.ColorRole.Button, QColor("#2e2f4a"))
-        pal.setColor(QPalette.ColorRole.ButtonText, QColor("#d4d4e8"))
-        pal.setColor(QPalette.ColorRole.Highlight, QColor("#7c6af7"))
-        pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#ffffff"))
+        pal.setColor(QPalette.ColorRole.ToolTipText, QColor("#F2F2F2"))
+        pal.setColor(QPalette.ColorRole.Text, QColor("#F2F2F2"))
+        pal.setColor(QPalette.ColorRole.Button, QColor("#2A2A2A"))
+        pal.setColor(QPalette.ColorRole.ButtonText, QColor("#F2F2F2"))
+        pal.setColor(QPalette.ColorRole.Highlight, QColor("#FF8C00"))
+        pal.setColor(QPalette.ColorRole.HighlightedText, QColor("#000000"))
         QApplication.setPalette(pal)

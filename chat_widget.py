@@ -28,17 +28,17 @@ _PAGE_HTML = """<!DOCTYPE html>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <style>
   :root {
-    --bg:           #1a1b26;
-    --surface:      #24253a;
-    --surface2:     #2e2f4a;
-    --accent:       #7c6af7;
-    --accent-glow:  rgba(124,106,247,0.25);
-    --user-bg:      #7c6af7;
-    --user-fg:      #ffffff;
-    --bot-bg:       #2e2f4a;
-    --bot-fg:       #d4d4e8;
-    --text-muted:   #666880;
-    --border:       #3a3b55;
+    --bg:           #121212;
+    --surface:      #1F1F1F;
+    --surface2:     #2A2A2A;
+    --accent:       #FF8C00;
+    --accent-glow:  rgba(255,140,0,0.25);
+    --user-bg:      #FF8C00;
+    --user-fg:      #000000;
+    --bot-bg:       #2A2A2A;
+    --bot-fg:       #F2F2F2;
+    --text-muted:   #777777;
+    --border:       #333333;
     --radius:       18px;
     --font:         'Segoe UI', system-ui, -apple-system, sans-serif;
     --mono:         'Cascadia Code', 'Consolas', monospace;
@@ -95,13 +95,49 @@ _PAGE_HTML = """<!DOCTYPE html>
   .msg-row.bot  .avatar { background: var(--surface2); border: 1px solid var(--border); }
 
   /* ── Bubble ── */
-  .bubble {
+  .bubble-wrapper {
+    position: relative;
     max-width: min(680px, 78%);
+  }
+  .bubble {
+    width: 100%;
     padding: 12px 16px;
     border-radius: var(--radius);
     word-break: break-word;
     overflow-wrap: break-word;
   }
+  .msg-row.bot .bubble {
+    padding-right: 36px;
+  }
+
+  .toggle-raw-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s, background 0.2s;
+    z-index: 10;
+  }
+  .msg-row.bot:hover .toggle-raw-btn {
+    opacity: 1;
+  }
+  .toggle-raw-btn:hover {
+    color: var(--bot-fg);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  .toggle-raw-btn.active {
+    color: var(--accent);
+    opacity: 1;
+  }
+
   .msg-row.user .bubble {
     background: var(--user-bg);
     color: var(--user-fg);
@@ -131,7 +167,7 @@ _PAGE_HTML = """<!DOCTYPE html>
   .bubble li { margin: 2px 0; }
   .bubble strong { font-weight: 700; }
   .bubble em     { font-style: italic; }
-  .bubble a      { color: #a89ff7; }
+  .bubble a      { color: #FFB732; }
   .bubble hr     { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
   .bubble blockquote {
     border-left: 3px solid var(--accent);
@@ -237,6 +273,27 @@ _PAGE_HTML = """<!DOCTYPE html>
 </div>
 
 <script>
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function toggleFormat(btn) {
+    const wrapper = btn.closest('.bubble-wrapper');
+    const bubble = wrapper.querySelector('.bubble');
+    const isRaw = bubble.classList.contains('is-raw');
+    if (isRaw) {
+      bubble.innerHTML = bubble.dataset.formatted;
+      bubble.classList.remove('is-raw');
+      btn.classList.remove('active');
+    } else {
+      bubble.innerHTML = '<pre style="margin:0; white-space:pre-wrap; font-family:var(--mono); color:var(--bot-fg); font-size:0.95em;">' + escapeHtml(bubble.dataset.raw) + '</pre>';
+      bubble.classList.add('is-raw');
+      btn.classList.add('active');
+    }
+    hljs.highlightAll();
+  }
+
   // Remove welcome message on first message
   function removeWelcome() {
     const w = document.getElementById('welcome');
@@ -244,16 +301,32 @@ _PAGE_HTML = """<!DOCTYPE html>
   }
 
   // Add a complete, finalized message bubble
-  function addMessage(role, htmlContent) {
+  function addMessage(role, htmlContent, rawContent) {
     removeWelcome();
     const chat = document.getElementById('chat');
     const row = document.createElement('div');
     row.className = 'msg-row ' + role;
     const avatar = role === 'user' ? '🧑' : '🦙';
-    row.innerHTML = `
-      <div class="avatar">${avatar}</div>
-      <div class="bubble">${htmlContent}</div>
-    `;
+    
+    let inner = `<div class="avatar">${avatar}</div>`;
+    if (role === 'bot') {
+      inner += `
+        <div class="bubble-wrapper">
+          <button class="toggle-raw-btn" onclick="toggleFormat(this)" title="Toggle Raw Text">&lt;/&gt;</button>
+          <div class="bubble">${htmlContent}</div>
+        </div>
+      `;
+    } else {
+      inner += `<div class="bubble-wrapper"><div class="bubble">${htmlContent}</div></div>`;
+    }
+    row.innerHTML = inner;
+    
+    if (role === 'bot') {
+      const bubble = row.querySelector('.bubble');
+      bubble.dataset.formatted = htmlContent;
+      bubble.dataset.raw = rawContent || '';
+    }
+    
     chat.appendChild(row);
     hljs.highlightAll();
     row.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -273,7 +346,10 @@ _PAGE_HTML = """<!DOCTYPE html>
     row.id = _streamId;
     row.innerHTML = `
       <div class="avatar">🦙</div>
-      <div class="bubble"><span class="cursor"></span></div>
+      <div class="bubble-wrapper">
+        <button class="toggle-raw-btn" onclick="toggleFormat(this)" title="Toggle Raw Text" style="display:none;">&lt;/&gt;</button>
+        <div class="bubble"><span class="cursor"></span></div>
+      </div>
     `;
     chat.appendChild(row);
     row.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -297,6 +373,12 @@ _PAGE_HTML = """<!DOCTYPE html>
     if (row) {
       const bubble = row.querySelector('.bubble');
       bubble.innerHTML = htmlContent;
+      bubble.dataset.formatted = htmlContent;
+      bubble.dataset.raw = _streamRaw;
+      
+      const btn = row.querySelector('.toggle-raw-btn');
+      if (btn) btn.style.display = '';
+      
       hljs.highlightAll();
       row.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
@@ -361,12 +443,8 @@ class ChatWidget(QWebEngineView):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setHtml(_PAGE_HTML, QUrl("about:blank"))
         self._stream_buffer = ""
-        self._plain_text_mode = False
 
     # ── Public API ──────────────────────────────────────────────────────────
-
-    def set_plain_text_mode(self, enabled: bool) -> None:
-        self._plain_text_mode = enabled
 
     def render_history(self, history: list[dict]) -> None:
         self.clear()
@@ -397,23 +475,15 @@ class ChatWidget(QWebEngineView):
 
     def add_assistant_message(self, content: str) -> None:
         """Render a completed assistant bubble directly."""
-        if self._plain_text_mode:
-            style = "margin:0; white-space:pre-wrap; font-family:var(--mono); color:var(--bot-fg)"
-            safe = f"<pre style='{style}'>{html.escape(content)}</pre>"
-            self._run_js(f"addMessage('bot', {repr(safe)})")
-        else:
-            html_content = _md_to_html(content)
-            self._run_js(f"addMessage('bot', {repr(html_content)})")
+        import json
+        html_content = _md_to_html(content)
+        self._run_js(f"addMessage('bot', {json.dumps(html_content)}, {json.dumps(content)})")
 
     def finalize_assistant_stream(self) -> None:
         """Convert accumulated text/markdown to HTML and replace the streaming bubble."""
-        if self._plain_text_mode:
-            style = "margin:0; white-space:pre-wrap; font-family:var(--mono); color:var(--bot-fg)"
-            safe = f"<pre style='{style}'>{html.escape(self._stream_buffer)}</pre>"
-            self._run_js(f"endStream({repr(safe)})")
-        else:
-            html_content = _md_to_html(self._stream_buffer)
-            self._run_js(f"endStream({repr(html_content)})")
+        import json
+        html_content = _md_to_html(self._stream_buffer)
+        self._run_js(f"endStream({json.dumps(html_content)})")
         self._stream_buffer = ""
 
     def show_error(self, message: str) -> None:

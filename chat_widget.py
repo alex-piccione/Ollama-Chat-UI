@@ -107,35 +107,40 @@ _PAGE_HTML = """<!DOCTYPE html>
     overflow-wrap: break-word;
   }
   .msg-row.bot .bubble {
-    padding-right: 36px;
+    padding-right: 64px;
   }
 
-  .toggle-raw-btn {
+  .bubble-actions {
     position: absolute;
     top: 6px;
     right: 6px;
-    background: transparent;
-    border: none;
+    display: flex;
+    gap: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .msg-row.bot:hover .bubble-actions {
+    opacity: 1;
+  }
+  .bubble-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
     color: var(--text-muted);
     cursor: pointer;
     font-size: 11px;
     font-family: var(--mono);
-    padding: 4px;
+    padding: 4px 6px;
     border-radius: 4px;
-    opacity: 0;
-    transition: opacity 0.2s, color 0.2s, background 0.2s;
-    z-index: 10;
+    transition: color 0.2s, background 0.2s;
   }
-  .msg-row.bot:hover .toggle-raw-btn {
-    opacity: 1;
-  }
-  .toggle-raw-btn:hover {
+  .bubble-btn:hover {
     color: var(--bot-fg);
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--surface);
   }
-  .toggle-raw-btn.active {
+  .bubble-btn.active {
     color: var(--accent);
-    opacity: 1;
+    border-color: var(--accent);
   }
 
   .msg-row.user .bubble {
@@ -278,6 +283,29 @@ _PAGE_HTML = """<!DOCTYPE html>
     return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  function copyText(btn) {
+    const wrapper = btn.closest('.bubble-wrapper');
+    const bubble = wrapper.querySelector('.bubble');
+    const textToCopy = bubble.dataset.raw !== undefined ? bubble.dataset.raw : bubble.innerText;
+    
+    const ta = document.createElement('textarea');
+    ta.value = textToCopy;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    
+    try {
+      document.execCommand('copy');
+      const oldText = btn.innerHTML;
+      btn.innerHTML = '✓';
+      setTimeout(() => { btn.innerHTML = oldText; }, 1500);
+    } catch (err) {
+      console.error('Copy failed', err);
+    }
+    document.body.removeChild(ta);
+  }
+
   function toggleFormat(btn) {
     const wrapper = btn.closest('.bubble-wrapper');
     const bubble = wrapper.querySelector('.bubble');
@@ -312,7 +340,10 @@ _PAGE_HTML = """<!DOCTYPE html>
     if (role === 'bot') {
       inner += `
         <div class="bubble-wrapper">
-          <button class="toggle-raw-btn" onclick="toggleFormat(this)" title="Toggle Raw Text">&lt;/&gt;</button>
+          <div class="bubble-actions">
+            <button class="bubble-btn" onclick="copyText(this)" title="Copy text">📋</button>
+            <button class="bubble-btn toggle-raw-btn" onclick="toggleFormat(this)" title="Toggle Raw Text">&lt;/&gt;</button>
+          </div>
           <div class="bubble">${htmlContent}</div>
         </div>
       `;
@@ -347,7 +378,10 @@ _PAGE_HTML = """<!DOCTYPE html>
     row.innerHTML = `
       <div class="avatar">🦙</div>
       <div class="bubble-wrapper">
-        <button class="toggle-raw-btn" onclick="toggleFormat(this)" title="Toggle Raw Text" style="display:none;">&lt;/&gt;</button>
+        <div class="bubble-actions" style="display:none;">
+          <button class="bubble-btn" onclick="copyText(this)" title="Copy text">📋</button>
+          <button class="bubble-btn toggle-raw-btn" onclick="toggleFormat(this)" title="Toggle Raw Text">&lt;/&gt;</button>
+        </div>
         <div class="bubble"><span class="cursor"></span></div>
       </div>
     `;
@@ -376,8 +410,8 @@ _PAGE_HTML = """<!DOCTYPE html>
       bubble.dataset.formatted = htmlContent;
       bubble.dataset.raw = _streamRaw;
       
-      const btn = row.querySelector('.toggle-raw-btn');
-      if (btn) btn.style.display = '';
+      const actions = row.querySelector('.bubble-actions');
+      if (actions) actions.style.display = '';
       
       hljs.highlightAll();
       row.scrollIntoView({ behavior: 'smooth', block: 'end' });

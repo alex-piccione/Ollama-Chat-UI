@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QColor, QFont, QKeyEvent, QPalette, QIcon
+from PyQt6.QtGui import QColor, QFont, QKeyEvent, QPalette, QIcon, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QComboBox,
@@ -102,7 +102,13 @@ class ChatWindow(QMainWindow):
 
     def _build_ui(self) -> None:
         self.setWindowTitle("Ollama Chat")
-        self.setWindowIcon(QIcon(str(Path(__file__).parent / "icon.png")))
+        
+        import base64
+        import icon_data
+        pixmap = QPixmap()
+        pixmap.loadFromData(base64.b64decode(icon_data.ICON_B64))
+        self.setWindowIcon(QIcon(pixmap))
+        
         self.setMinimumSize(800, 600)
         self._apply_dark_palette()
 

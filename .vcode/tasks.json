@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "⚡ Pip install (dev)",
+            "type": "shell",
+            "command": "pip",
+            "args": [
+                "install",
+                "-e",
+                "\".[dev]\"",
+                "."
+            ],
+            "group": "build"
+        }
+    ]
+}

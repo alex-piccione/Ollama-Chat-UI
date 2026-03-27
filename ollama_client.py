@@ -61,6 +61,7 @@ class ChatWorker(QThread):
                 model=self._model,
                 messages=self._messages,
                 stream=True,
+                think=False
             )
             for chunk in stream:
                 if self._abort:

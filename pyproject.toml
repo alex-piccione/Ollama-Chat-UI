@@ -25,7 +25,7 @@ dev = [
 ollama-chat = "main:main"
 
 [tool.setuptools]
-py-modules = ["main", "chat_window", "chat_widget", "ollama_client", "config"]
+py-modules = ["main", "chat_window", "chat_widget", "ollama_client", "config", "icon_data"]
 
 [tool.ruff]
 line-length = 100
